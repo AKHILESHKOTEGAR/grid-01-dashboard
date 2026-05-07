@@ -1,6 +1,10 @@
 import { type NextRequest } from "next/server";
 
+// Edge runtime: no timeout for streaming responses (serverless would cap at 60 s)
+export const runtime = "edge";
 export const dynamic = "force-dynamic";
+
+const BACKEND = (process.env.BACKEND_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
 export async function GET(req: NextRequest) {
   const year  = req.nextUrl.searchParams.get("year")  ?? "2026";
@@ -14,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const upstream = await fetch(
-      `http://localhost:8000/api/replay/${year}/${round}`,
+      `${BACKEND}/api/replay/${year}/${round}`,
       { signal: req.signal }
     );
 
@@ -24,7 +28,6 @@ export async function GET(req: NextRequest) {
       headers: {
         "Content-Type":      "text/event-stream",
         "Cache-Control":     "no-cache, no-transform",
-        "Connection":        "keep-alive",
         "X-Accel-Buffering": "no",
       },
     });
