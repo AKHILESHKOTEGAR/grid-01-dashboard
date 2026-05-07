@@ -252,7 +252,8 @@ export default function ReplayPage() {
     setLoadMsg("Connecting to backend…");
     setErrorMsg("");
 
-    const url = `/api/replay-stream?year=${encodeURIComponent(year)}&round=${encodeURIComponent(round)}`;
+    const backendBase = (process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000").replace(/\/$/, "");
+    const url = `${backendBase}/api/replay/${encodeURIComponent(year)}/${encodeURIComponent(round)}`;
     const es  = new EventSource(url);
     esRef.current = es;
 
