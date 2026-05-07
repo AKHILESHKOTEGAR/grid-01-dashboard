@@ -7,12 +7,12 @@ the same FastF1 cache.
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from multiprocessing import Pool, cpu_count
+from concurrent.futures import ThreadPoolExecutor
+import os
 from datetime import timedelta
 import fastf1
 import pandas as pd
 import numpy as np
-import os
 import json
 import asyncio
 
@@ -139,9 +139,9 @@ def _build_replay(year: int, round_num: int) -> dict:
 
     # ── 1. Per-driver telemetry (parallel) ──────────────────────────────────
     args = [(drv, session, codes[drv]) for drv in drivers]
-    procs = min(cpu_count(), len(drivers))
-    with Pool(processes=procs) as pool:
-        results = pool.map(_process_driver, args)
+    workers = min(4, len(drivers))
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        results = list(ex.map(_process_driver, args))
 
     driver_data: dict = {}
     g_t_min = g_t_max = None
