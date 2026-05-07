@@ -1,26 +1,125 @@
 @import "tailwindcss";
 
+/* ====================================================
+   GRID.01 — GLOBAL THEME SYSTEM
+   Dark mode only. No light mode.
+   ==================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --bg: #050505;
+  --bg-2: #0a0a0a;
+  --card: rgba(255,255,255,0.03);
+  --card-hover: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.15);
+  --text: #f5f5f5;
+  --text-2: rgba(255,255,255,0.55);
+  --text-3: rgba(255,255,255,0.25);
+  --text-4: rgba(255,255,255,0.1);
+  --accent: #E10600;
+  --scene-bg: #010101;
+  --invert-svg: invert(1) brightness(4);
+  --nav-bg: rgba(5,5,5,0.85);
 }
 
+/* ====================================================
+   BASE
+   ==================================================== */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*, *::before, *::after {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
 }
+
+/* ====================================================
+   CUSTOM SCROLLBAR
+   ==================================================== */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(225,6,0,0.45); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(225,6,0,0.8); }
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(225,6,0,0.45) transparent; }
+
+/* ====================================================
+   KEYFRAMES
+   ==================================================== */
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(400%); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(1.4); }
+}
+
+@keyframes radio-wave {
+  0%, 100% { height: 4px; }
+  50%       { height: 14px; }
+}
+
+.animate-scanline    { animation: scanline 5s linear infinite; }
+.animate-fade-up     { animation: fade-up 0.5s ease-out forwards; }
+.animate-spin-slow   { animation: spin-slow 8s linear infinite; }
+.animate-live-pulse  { animation: live-pulse 1.2s ease-in-out infinite; }
+.animate-radio-wave  { animation: radio-wave 0.6s ease-in-out infinite; }
+
+/* ====================================================
+   SKELETON LOADER
+   ==================================================== */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--card) 25%,
+    var(--border) 50%,
+    var(--card) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 1rem;
+}
+
+/* ====================================================
+   THEME-AWARE UTILITIES
+   ==================================================== */
+.glass {
+  background: var(--card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+}
+.glass:hover {
+  background: var(--card-hover);
+  border-color: var(--border-strong);
+}
+
+.circuit-svg {
+  filter: var(--invert-svg);
+}
+
+::selection { background: rgba(225,6,0,0.35); color: inherit; }

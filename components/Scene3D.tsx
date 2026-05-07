@@ -1,112 +1,113 @@
 "use client";
 import React, { Suspense } from "react";
 import { Canvas, useLoader } from "@react-three/fiber";
-import { OrbitControls, Stage, ContactShadows, Environment } from "@react-three/drei";
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
+import { OrbitControls, ContactShadows, Environment } from "@react-three/drei";
+import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 
-function F1Car({ color }: { color: string }) {
-    const geometry = useLoader(STLLoader, "/F1_RB16B.stl");
+function F1Car({ color, isDark }: { color: string; isDark: boolean }) {
+  const geometry = useLoader(STLLoader, "/F1_RB16B.stl");
+  geometry.center();
 
-    return (
-        <mesh
-            geometry={geometry}
-            // 1. DYNAMIC SCALE: TRIPLED from 0.06 to 0.18
-            scale={0.18}
-            rotation={[-Math.PI / 2, 0, Math.PI / 2]}
-            position={[0, -1, 0]} // Positioned to ground it below text
-            castShadow
-        >
-            {/* 2. DYNAMIC MATERIAL: 
-               - metalness 1.0 (Rich metallic sheen)
-               - roughness 0.05 (Smoother for high-gloss reflections)
-               - emissiveIntensity 0.35 (Boosts saturation in low light)
-            */}
-            <meshStandardMaterial
-                color={color}
-                metalness={1.0}
-                roughness={0.05}
-                emissive={color}
-                emissiveIntensity={0.35}
-            />
-        </mesh>
-    );
+  return (
+    <mesh
+      geometry={geometry}
+      scale={0.18}
+      rotation={[-Math.PI / 2, 0, Math.PI / 2]}
+      position={[0, -1.4, 0]}
+      castShadow
+    >
+      <meshStandardMaterial
+        color={color}
+        metalness={isDark ? 1.0 : 0.7}
+        roughness={isDark ? 0.05 : 0.15}
+        emissive={color}
+        emissiveIntensity={isDark ? 0.35 : 0.15}
+      />
+    </mesh>
+  );
 }
 
-export default function Scene3D({ teamColor = "#E10600" }: { teamColor?: string }) {
-    return (
-        /* 3. CINEMATIC CAMERA: 
-           - Closer position [8, 4, 10] to [6, 2.5, 7]
-           - NARROWER FOV from 35 to 25 (This creates a massive zoom-in effect)
-        */
-        <Canvas shadows camera={{ position: [6, 2.5, 7], fov: 25 }}>
-            <color attach="background" args={["#010101"]} />
-            {/* Thinned fog so light travels better across the car */}
-            <fog attach="fog" args={["#010101", 30, 60]} />
+interface Props {
+  teamColor?: string;
+  isDark?: boolean;
+}
 
-            {/* --- MAX-LUMINOSITY LIGHTING --- */}
-            <ambientLight intensity={0.7} />
+export default function Scene3D({ teamColor = "#E10600", isDark = true }: Props) {
+  const bgColor = isDark ? "#010101" : "#dcdcdc";
+  const fogColor = isDark ? "#010101" : "#dcdcdc";
+  const gridPri = isDark ? "#1a1a1a" : "#c0c0c0";
+  const gridSec = isDark ? "#080808" : "#d8d8d8";
+  const ambLight = isDark ? 0.7 : 1.4;
+  const topLight = isDark ? 5.0 : 6.0;
+  const rimColor = isDark ? teamColor : "#ffffff";
+  const rimInt = isDark ? 3.0 : 1.5;
 
-            {/* Top-Down Hero Light (White) */}
-            <spotLight
-                position={[0, 20, 0]}
-                angle={0.5}
-                penumbra={1}
-                intensity={5} // Max top-down brightness
-                castShadow
-            />
+  return (
+    <Canvas shadows camera={{ position: [0, 2, 10], fov: 28 }}>
+      <color attach="background" args={[bgColor]} />
+      <fog attach="fog" args={[fogColor, 30, 60]} />
 
-            {/* Front-Facing Accent Light (White) */}
-            <spotLight
-                position={[15, 9, 10]}
-                angle={0.2}
-                penumbra={1}
-                intensity={4}
-                color="#ffffff"
-            />
+      <ambientLight intensity={ambLight} />
 
-            {/* Rear "Rim" Accent Light (Red/Lime/White) */}
-            <spotLight
-                position={[-15, 5, -10]}
-                angle={0.2}
-                penumbra={1}
-                intensity={3}
-                color={teamColor} // Uses team color for depth
-            />
+      {/* Top hero */}
+      <spotLight
+        position={[0, 20, 0]}
+        angle={0.5}
+        penumbra={1}
+        intensity={topLight}
+        castShadow
+      />
 
-            {/* pointLights provide the color splash onto the floor and details */}
-            <pointLight position={[10, 10, 10]} intensity={2.5} />
-            <pointLight position={[-10, -10, -10]} color={teamColor} intensity={1.5} />
+      {/* Front accent */}
+      <spotLight
+        position={[15, 9, 10]}
+        angle={0.2}
+        penumbra={1}
+        intensity={isDark ? 4 : 5}
+        color="#ffffff"
+      />
 
-            <Suspense fallback={null}>
-                {/* 4. STAGE ADJUSTMENT: Max Intensity */}
-                <Stage
-                    environment="warehouse" // Warehouse has brightest light bars for reflections
-                    intensity={2}
-                    preset="rembrandt"
-                    adjustCamera={false} // Keep our custom camera
-                >
-                    <F1Car color={teamColor} />
-                </Stage>
-                {/* Changed to 'studio' for cleaner, brighter specular highlights */}
-                <Environment preset="studio" />
-            </Suspense>
+      {/* Rim light — team color in dark, white fill in light */}
+      <spotLight
+        position={[-15, 5, -10]}
+        angle={0.2}
+        penumbra={1}
+        intensity={rimInt}
+        color={rimColor}
+      />
 
-            <gridHelper args={[100, 100, "#222", "#080808"]} position={[0, -2.01, 0]} />
+      {/* Fill point */}
+      <pointLight position={[10, 10, 10]} intensity={isDark ? 2.5 : 3.0} />
+      <pointLight position={[-10, -10, -10]} color={teamColor} intensity={isDark ? 1.5 : 0.5} />
 
-            <ContactShadows
-                opacity={0.6}
-                scale={40}
-                blur={2}
-                far={10}
-                color="#000000"
-            />
+      {/* In light mode add extra under-fill to prevent dark undercarriage */}
+      {!isDark && (
+        <pointLight position={[0, -5, 5]} color="#ffffff" intensity={2.0} />
+      )}
 
-            <OrbitControls
-                enableZoom={false}
-                autoRotate
-                autoRotateSpeed={0.5}
-                maxPolarAngle={Math.PI / 2.1}
-            />
-        </Canvas>
-    );
+      <Suspense fallback={null}>
+        <Environment preset={isDark ? "warehouse" : "city"} />
+        <F1Car color={teamColor} isDark={isDark} />
+      </Suspense>
+
+      <gridHelper args={[100, 100, gridPri, gridSec]} position={[0, -2.41, 0]} />
+
+      <ContactShadows
+        position={[0, -2.41, 0]}
+        opacity={isDark ? 0.6 : 0.25}
+        scale={40}
+        blur={2}
+        far={10}
+        color={isDark ? "#000000" : "#888888"}
+      />
+
+      <OrbitControls
+        target={[0, -0.4, 0]}
+        enableZoom={false}
+        autoRotate
+        autoRotateSpeed={0.5}
+        maxPolarAngle={Math.PI / 2.1}
+      />
+    </Canvas>
+  );
 }
