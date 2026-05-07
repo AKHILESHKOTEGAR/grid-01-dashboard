@@ -262,71 +262,11 @@ def _build_replay(year: int, round_num: int) -> dict:
         except Exception:
             continue
 
-    # ── 4. Pre-build frames ──────────────────────────────────────────────────
-    driver_codes = list(resampled.keys())
-    frames: list = []
-    n_frames = len(tl_shifted)
-
-    for i in range(n_frames):
-        t_val = float(tl_shifted[i])
-        snapshot = []
-        for code in driver_codes:
-            d = resampled[code]
-            xi_raw, yi_raw = d["x"][i], d["y"][i]
-            # Skip NaN (driver outside their data range) or near-origin GPS artefacts
-            if np.isnan(xi_raw) or np.isnan(yi_raw):
-                continue
-            xi, yi = float(xi_raw), float(yi_raw)
-            if abs(xi) < 1 and abs(yi) < 1:
-                continue
-            snapshot.append({
-                "code": code,
-                "x": xi, "y": yi,
-                "dist":     float(d["dist"][i]),
-                "rel_dist": float(d["rel_dist"][i]),
-                "lap":      int(round(d["lap"][i])),
-                "tyre":     int(round(d["tyre"][i])),
-                "speed":    float(d["speed"][i]),
-                "gear":     int(round(d["gear"][i])),
-                "drs":      int(round(d["drs"][i])),
-                "throttle": float(d["throttle"][i]),
-                "brake":    float(d["brake"][i]),
-            })
-
-        if not snapshot:
-            continue
-
-        snapshot.sort(key=lambda r: (r["lap"], r["dist"]), reverse=True)
-        frame_data: dict = {}
-        for pos, car in enumerate(snapshot, 1):
-            frame_data[car["code"]] = {
-                "x": car["x"], "y": car["y"],
-                "speed": car["speed"], "gear": car["gear"],
-                "throttle": car["throttle"], "brake": car["brake"],
-                "drs": car["drs"], "tyre": car["tyre"],
-                "position": pos,
-                "lap": car["lap"], "rel_dist": car["rel_dist"], "dist": car["dist"],
-            }
-
-        leader = snapshot[0]
-        secs = int(g_t_min + t_val * PLAYBACK)
-        time_str = f"{secs//3600:02d}:{(secs%3600)//60:02d}:{secs%60:02d}"
-
-        frames.append({
-            "frame":        {"drivers": frame_data, "safety_car": None,
-                             "lap": leader["lap"], "t": t_val},
-            "session_data": {"lap": leader["lap"], "leader": leader["code"],
-                             "time": time_str, "total_laps": total_laps},
-            "track_status":   "1",
-            "is_paused":      False,
-            "playback_speed": PLAYBACK,
-            "frame_index":    i,
-            "total_frames":   n_frames,
-            "event_name":     event_name,
-        })
-
     return {
-        "frames":     frames,
+        "resampled":  resampled,
+        "tl_shifted": tl_shifted,
+        "g_t_min":    g_t_min,
+        "PLAYBACK":   PLAYBACK,
         "bounds":     bounds,
         "track_pts":  track_pts,
         "pit_pts":    pit_pts,
@@ -414,11 +354,63 @@ async def stream_replay(year: int, round_num: int, request: Request):
             # Send setup (bounds + track ghost + pit lane) — frontend locks immediately
             yield f"data: {json.dumps({'status':'ready','bounds':cached['bounds'],'track_pts':cached['track_pts'],'pit_pts':cached['pit_pts'],'event_name':cached['event_name']})}\n\n"
 
-            # Stream pre-built frames
-            for frame in cached["frames"]:
+            # Stream frames on-the-fly from numpy arrays
+            resampled    = cached["resampled"]
+            tl_shifted   = cached["tl_shifted"]
+            g_t_min      = cached["g_t_min"]
+            PLAYBACK     = cached["PLAYBACK"]
+            total_laps   = cached["total_laps"]
+            event_name   = cached["event_name"]
+            driver_codes = list(resampled.keys())
+            n_frames     = len(tl_shifted)
+
+            for i in range(n_frames):
                 if await request.is_disconnected():
                     break
-                yield f"data: {json.dumps(frame)}\n\n"
+
+                t_val    = float(tl_shifted[i])
+                snapshot = []
+                for code in driver_codes:
+                    d = resampled[code]
+                    xi_raw, yi_raw = d["x"][i], d["y"][i]
+                    if np.isnan(xi_raw) or np.isnan(yi_raw):
+                        continue
+                    xi, yi = float(xi_raw), float(yi_raw)
+                    if abs(xi) < 1 and abs(yi) < 1:
+                        continue
+                    snapshot.append({
+                        "code": code, "x": xi, "y": yi,
+                        "dist":     float(d["dist"][i]),
+                        "rel_dist": float(d["rel_dist"][i]),
+                        "lap":      int(round(d["lap"][i])),
+                        "tyre":     int(round(d["tyre"][i])),
+                        "speed":    float(d["speed"][i]),
+                        "gear":     int(round(d["gear"][i])),
+                        "drs":      int(round(d["drs"][i])),
+                        "throttle": float(d["throttle"][i]),
+                        "brake":    float(d["brake"][i]),
+                    })
+
+                if not snapshot:
+                    continue
+
+                snapshot.sort(key=lambda r: (r["lap"], r["dist"]), reverse=True)
+                frame_data: dict = {}
+                for pos, car in enumerate(snapshot, 1):
+                    frame_data[car["code"]] = {
+                        "x": car["x"], "y": car["y"],
+                        "speed": car["speed"], "gear": car["gear"],
+                        "throttle": car["throttle"], "brake": car["brake"],
+                        "drs": car["drs"], "tyre": car["tyre"],
+                        "position": pos,
+                        "lap": car["lap"], "rel_dist": car["rel_dist"], "dist": car["dist"],
+                    }
+
+                leader = snapshot[0]
+                secs   = int(g_t_min + t_val * PLAYBACK)
+                time_str = f"{secs//3600:02d}:{(secs%3600)//60:02d}:{secs%60:02d}"
+
+                yield f"data: {json.dumps({'frame': {'drivers': frame_data, 'safety_car': None, 'lap': leader['lap'], 't': t_val}, 'session_data': {'lap': leader['lap'], 'leader': leader['code'], 'time': time_str, 'total_laps': total_laps}, 'track_status': '1', 'is_paused': False, 'playback_speed': PLAYBACK, 'frame_index': i, 'total_frames': n_frames, 'event_name': event_name})}\n\n"
                 await asyncio.sleep(DT_STREAM)
 
         except Exception as e:
