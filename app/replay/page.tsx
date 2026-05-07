@@ -134,7 +134,7 @@ const LeaderRow = memo(function LeaderRow({ code, d }: { code: string; d: Driver
 /* ------------------------------------------------------------------ */
 export default function ReplayPage() {
   const [year,  setYear]  = useState("2026");
-  const [round, setRound] = useState("5");
+  const [round, setRound] = useState("1");
   const { races, loading: racesLoading } = useRaceSchedule(year);
 
   const [phase,    setPhase]    = useState<"idle"|"loading"|"live"|"error">("idle");
@@ -158,8 +158,11 @@ export default function ReplayPage() {
   const lastLeaderTs = useRef<number>(0);
 
   useEffect(() => {
-    if (races.length > 0 && !races.find(r => r.round === round)) {
-      setRound(races[races.length - 1].round);
+    if (races.length === 0) return;
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const available = races.filter(r => new Date(r.date).getTime() < sevenDaysAgo);
+    if (available.length > 0) {
+      setRound(available[available.length - 1].round);
     }
   }, [races]);
 
@@ -265,7 +268,9 @@ export default function ReplayPage() {
           setPhase("error");
           setErrorMsg(
             data.error === "backend_offline"
-              ? "FastAPI backend offline — run: cd backend && uvicorn main:app --port 8000"
+              ? "Backend offline"
+              : data.error.includes("No valid telemetry")
+              ? "Race data not available yet — select an earlier round"
               : data.error
           );
           es.close();
