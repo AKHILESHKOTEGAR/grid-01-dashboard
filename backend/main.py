@@ -337,6 +337,10 @@ def _build_replay(year: int, round_num: int) -> dict:
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
 @app.get("/api/schedule/{year}")
 async def get_schedule(year: int):
     def _load():
