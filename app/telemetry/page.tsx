@@ -110,8 +110,9 @@ function useTelemetry(year: string, round: string, driver: string) {
     if (!driver || !round || !year) return;
     setLoading(true);
     try {
+      const backendBase = (process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000").replace(/\/$/, "");
       const res = await fetch(
-        `http://localhost:8000/api/telemetry/${year}/${round}/${driver}`,
+        `${backendBase}/api/telemetry/${year}/${round}/${driver}`,
         { signal: AbortSignal.timeout(8000) }
       );
       if (!res.ok) throw new Error("Backend offline");
