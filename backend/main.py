@@ -394,11 +394,16 @@ async def stream_replay(year: int, round_num: int, request: Request):
             if cached is None:
                 yield f"data: {json.dumps({'status':'loading','message':f'Loading {year} Round {round_num}...'})}\n\n"
 
-                def _run():
-                    return _build_replay(year, round_num)
+                load_task = asyncio.create_task(
+                    asyncio.to_thread(lambda: _build_replay(year, round_num))
+                )
+                while not load_task.done():
+                    await asyncio.sleep(15)
+                    if not load_task.done():
+                        yield ": keep-alive\n\n"
 
                 try:
-                    cached = await asyncio.to_thread(_run)
+                    cached = load_task.result()
                     _replay_cache[cache_key] = cached
                 except Exception as e:
                     yield f"data: {json.dumps({'error': str(e)})}\n\n"
