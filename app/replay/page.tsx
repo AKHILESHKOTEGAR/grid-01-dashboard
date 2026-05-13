@@ -140,6 +140,8 @@ export default function ReplayPage() {
   const [phase,    setPhase]    = useState<"idle"|"loading"|"live"|"error">("idle");
   const [loadMsg,  setLoadMsg]  = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [elapsed,  setElapsed]  = useState(0);
+  const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [trackPts, setTrackPts] = useState<[number,number][]>([]);
 
@@ -250,10 +252,13 @@ export default function ReplayPage() {
 
   const startReplay = useCallback(() => {
     esRef.current?.close();
+    if (elapsedRef.current) clearInterval(elapsedRef.current);
     resetState();
     setPhase("loading");
+    setElapsed(0);
     setLoadMsg("Connecting to backend…");
     setErrorMsg("");
+    elapsedRef.current = setInterval(() => setElapsed(s => s + 1), 1000);
 
     const backendBase = (process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000").replace(/\/$/, "");
     const url = `${backendBase}/api/replay/${encodeURIComponent(year)}/${encodeURIComponent(round)}`;
@@ -265,6 +270,7 @@ export default function ReplayPage() {
         const data = JSON.parse(e.data);
 
         if (data.error) {
+          if (elapsedRef.current) { clearInterval(elapsedRef.current); elapsedRef.current = null; }
           setPhase("error");
           setErrorMsg(
             data.error === "backend_offline"
@@ -287,6 +293,7 @@ export default function ReplayPage() {
           b.minX = data.bounds.minX; b.maxX = data.bounds.maxX;
           b.minY = data.bounds.minY; b.maxY = data.bounds.maxY;
           b.locked = true;
+          if (elapsedRef.current) { clearInterval(elapsedRef.current); elapsedRef.current = null; }
           if (Array.isArray(data.track_pts)) setTrackPts(data.track_pts as [number,number][]);
           setPhase("live");
           return;
@@ -445,7 +452,7 @@ export default function ReplayPage() {
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#60a5fa" }}>{loadMsg}</p>
                 <p className="text-[9px] mt-0.5 font-mono" style={{ color: "var(--text-3)" }}>
-                  First load ~30–90 s. Cached: near-instant.
+                  First load 2–5 min · cached: instant · {elapsed}s elapsed
                 </p>
               </div>
             </motion.div>
@@ -578,6 +585,9 @@ export default function ReplayPage() {
                       style={{ borderTopColor: "#E10600", animation: "spin 0.7s linear infinite" }} />
                     <span className="text-[10px] font-black uppercase tracking-widest italic" style={{ color: "var(--text-3)" }}>
                       {loadMsg}
+                    </span>
+                    <span className="text-[9px] font-mono" style={{ color: "var(--text-4)" }}>
+                      {elapsed}s · first load 2–5 min
                     </span>
                   </div>
                 )}
