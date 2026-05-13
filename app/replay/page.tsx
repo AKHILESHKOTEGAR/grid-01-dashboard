@@ -261,11 +261,12 @@ export default function ReplayPage() {
     elapsedRef.current = setInterval(() => setElapsed(s => s + 1), 1000);
 
     const backendBase = (process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000").replace(/\/$/, "");
-    const url = `${backendBase}/api/replay/${encodeURIComponent(year)}/${encodeURIComponent(round)}`;
-    const es  = new EventSource(url);
-    esRef.current = es;
+    const wsBase = backendBase.replace(/^http/, "ws");
+    const url = `${wsBase}/ws/replay/${encodeURIComponent(year)}/${encodeURIComponent(round)}`;
+    const ws = new WebSocket(url);
+    esRef.current = ws as unknown as EventSource;
 
-    es.onmessage = (e) => {
+    ws.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
 
@@ -279,7 +280,7 @@ export default function ReplayPage() {
               ? "Race data not available yet — select an earlier round"
               : data.error
           );
-          es.close();
+          ws.close();
           return;
         }
 
@@ -303,7 +304,8 @@ export default function ReplayPage() {
       } catch { /* malformed frame, skip */ }
     };
 
-    es.onerror = () => {
+    ws.onerror = () => {
+      if (elapsedRef.current) { clearInterval(elapsedRef.current); elapsedRef.current = null; }
       setPhase(p => {
         if (p !== "live") {
           setErrorMsg("Connection lost. Is the backend running?");
@@ -311,7 +313,7 @@ export default function ReplayPage() {
         }
         return p;
       });
-      es.close();
+      ws.close();
     };
   }, [year, round, resetState]);
 
