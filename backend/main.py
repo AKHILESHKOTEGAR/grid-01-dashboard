@@ -132,23 +132,19 @@ def _build_replay(year: int, round_num: int) -> dict:
     Mirrors get_race_telemetry from f1-race-replay.
     """
     session = fastf1.get_session(year, round_num, "R")
-    session.load(telemetry=True, laps=True, weather=False)
+    session.load(telemetry=False, laps=True, weather=False)
 
     event_name = str(session.event["EventName"])
     drivers    = session.drivers
     codes      = {num: session.get_driver(num)["Abbreviation"] for num in drivers}
 
-    # ── 1. Per-driver telemetry (parallel) ──────────────────────────────────
-    args = [(drv, session, codes[drv]) for drv in drivers]
-    workers = min(2, len(drivers))
-    with ThreadPoolExecutor(max_workers=workers) as ex:
-        results = list(ex.map(_process_driver, args))
-
+    # ── 1. Per-driver telemetry (sequential to keep peak RAM low) ──────────────
     driver_data: dict = {}
     g_t_min = g_t_max = None
     total_laps = 0
 
-    for r in results:
+    for drv in drivers:
+        r = _process_driver((drv, session, codes[drv]))
         if r is None:
             continue
         driver_data[r["code"]] = r["data"]
