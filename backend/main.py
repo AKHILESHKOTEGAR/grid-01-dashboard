@@ -10,6 +10,7 @@ from fastapi.responses import StreamingResponse
 from concurrent.futures import ThreadPoolExecutor
 import os
 from datetime import timedelta
+import gc
 import fastf1
 import pandas as pd
 import numpy as np
@@ -70,16 +71,16 @@ def _process_driver(args):
                     continue
                 n = len(tel)
 
-                t   = tel["SessionTime"].dt.total_seconds().to_numpy(dtype=float)
-                x   = tel["X"].to_numpy(dtype=float)
-                y   = tel["Y"].to_numpy(dtype=float)
-                d   = tel["Distance"].to_numpy(dtype=float) if "Distance" in tel.columns else np.zeros(n)
-                rd  = tel["RelativeDistance"].to_numpy(dtype=float) if "RelativeDistance" in tel.columns else np.zeros(n)
-                sp  = tel["Speed"].to_numpy(dtype=float)
-                g   = tel["nGear"].to_numpy(dtype=float)   if "nGear"    in tel.columns else np.zeros(n)
-                drs = tel["DRS"].to_numpy(dtype=float)     if "DRS"      in tel.columns else np.zeros(n)
-                th  = tel["Throttle"].to_numpy(dtype=float) * 100 if "Throttle" in tel.columns else np.zeros(n)
-                br  = tel["Brake"].to_numpy(dtype=float)   * 100 if "Brake"    in tel.columns else np.zeros(n)
+                t   = tel["SessionTime"].dt.total_seconds().to_numpy(dtype=np.float32)
+                x   = tel["X"].to_numpy(dtype=np.float32)
+                y   = tel["Y"].to_numpy(dtype=np.float32)
+                d   = tel["Distance"].to_numpy(dtype=np.float32) if "Distance" in tel.columns else np.zeros(n, dtype=np.float32)
+                rd  = tel["RelativeDistance"].to_numpy(dtype=np.float32) if "RelativeDistance" in tel.columns else np.zeros(n, dtype=np.float32)
+                sp  = tel["Speed"].to_numpy(dtype=np.float32)
+                g   = tel["nGear"].to_numpy(dtype=np.float32)   if "nGear"    in tel.columns else np.zeros(n, dtype=np.float32)
+                drs = tel["DRS"].to_numpy(dtype=np.float32)     if "DRS"      in tel.columns else np.zeros(n, dtype=np.float32)
+                th  = tel["Throttle"].to_numpy(dtype=np.float32) * 100 if "Throttle" in tel.columns else np.zeros(n, dtype=np.float32)
+                br  = tel["Brake"].to_numpy(dtype=np.float32)   * 100 if "Brake"    in tel.columns else np.zeros(n, dtype=np.float32)
 
                 race_d = total_dist + d
                 total_dist = race_d[-1] if len(race_d) else total_dist
@@ -89,8 +90,8 @@ def _process_driver(args):
 
                 t_all.append(t);  x_all.append(x);    y_all.append(y)
                 dist_all.append(race_d); rd_all.append(rd)
-                lap_nums.append(np.full(n, lap_num, dtype=float))
-                tyre_all.append(np.full(n, tyre_int, dtype=float))
+                lap_nums.append(np.full(n, lap_num, dtype=np.float32))
+                tyre_all.append(np.full(n, tyre_int, dtype=np.float32))
                 sp_all.append(sp); g_all.append(g); drs_all.append(drs)
                 th_all.append(th); br_all.append(br)
             except Exception:
@@ -131,7 +132,7 @@ def _build_replay(year: int, round_num: int) -> dict:
     Mirrors get_race_telemetry from f1-race-replay.
     """
     session = fastf1.get_session(year, round_num, "R")
-    session.load(telemetry=True, laps=True, weather=True)
+    session.load(telemetry=True, laps=True, weather=False)
 
     event_name = str(session.event["EventName"])
     drivers    = session.drivers
@@ -139,7 +140,7 @@ def _build_replay(year: int, round_num: int) -> dict:
 
     # ── 1. Per-driver telemetry (parallel) ──────────────────────────────────
     args = [(drv, session, codes[drv]) for drv in drivers]
-    workers = min(4, len(drivers))
+    workers = min(2, len(drivers))
     with ThreadPoolExecutor(max_workers=workers) as ex:
         results = list(ex.map(_process_driver, args))
 
@@ -250,9 +251,9 @@ def _build_replay(year: int, round_num: int) -> dict:
             tel = pit_laps.iloc[0:1].get_telemetry()   # first pit-in lap only
             if tel is None or tel.empty or "X" not in tel.columns:
                 continue
-            xs  = tel["X"].to_numpy(dtype=float)
-            ys  = tel["Y"].to_numpy(dtype=float)
-            sps = tel["Speed"].to_numpy(dtype=float)
+            xs  = tel["X"].to_numpy(dtype=np.float32)
+            ys  = tel["Y"].to_numpy(dtype=np.float32)
+            sps = tel["Speed"].to_numpy(dtype=np.float32)
             # Pit lane = slow section of the lap (< 80 km/h)
             pit_mask = (sps < 80) & ~(np.isnan(xs) | np.isnan(ys))
             xs_p, ys_p = xs[pit_mask], ys[pit_mask]
@@ -261,6 +262,10 @@ def _build_replay(year: int, round_num: int) -> dict:
                 break
         except Exception:
             continue
+
+    # Free session — hundreds of MB, no longer needed
+    del session
+    gc.collect()
 
     return {
         "resampled":  resampled,
