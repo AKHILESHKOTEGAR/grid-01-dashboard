@@ -66,7 +66,7 @@ export default function Navbar() {
       <Link href="/" className="flex items-center gap-2 px-4 mr-1 group">
         <div className="w-1 h-5 rounded-full" style={{ background: "#E10600", boxShadow: "0 0 12px #E10600" }} />
         <span className="text-sm font-black italic tracking-tighter uppercase transition-colors" style={{ color: "var(--text)" }}>
-          GRID<span style={{ color: "#E10600" }}>.01</span>
+          PIT<span style={{ color: "#E10600" }}>WALL</span>
         </span>
       </Link>
 

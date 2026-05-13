@@ -37,7 +37,7 @@ export default function Impressum() {
                 </section>
 
                 <footer className="pt-12">
-                    <a href="/" className="text-[10px] uppercase tracking-[0.5em] text-white/30 hover:text-white transition-colors">← Back to Grid.01</a>
+                    <a href="/" className="text-[10px] uppercase tracking-[0.5em] text-white/30 hover:text-white transition-colors">← Back to Pitwall</a>
                 </footer>
             </div>
         </main>

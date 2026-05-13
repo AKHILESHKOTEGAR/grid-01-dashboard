@@ -615,7 +615,7 @@ export default function ReplayPage() {
               {/* Watermark */}
               <text x={SVG_W / 2} y={SVG_H / 2 + 16} textAnchor="middle"
                 fill="rgba(255,255,255,0.015)" fontSize="52" fontWeight="900" fontFamily="monospace">
-                GRID.01
+                PITWALL
               </text>
 
               {/* Safety car — pre-rendered, position updated via DOM ref */}

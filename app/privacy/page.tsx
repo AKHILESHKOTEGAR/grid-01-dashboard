@@ -17,7 +17,7 @@ export default function Privacy() {
                         <h2 className="text-white font-bold uppercase tracking-widest mb-3">2. Data Collection</h2>
                         <ul className="list-disc list-inside space-y-2 ml-2">
                             <li><span className="text-white underline decoration-white/10">Server Logs:</span> Information like IP address and browser type are briefly processed by the host to serve the site.</li>
-                            <li><span className="text-white underline decoration-white/10">External APIs:</span> GRID.01 fetches live telemetry from Jolpica/FastF1. Your IP is transmitted to these servers only to retrieve the data.</li>
+                            <li><span className="text-white underline decoration-white/10">External APIs:</span> PITWALL fetches live telemetry from Jolpica/FastF1. Your IP is transmitted to these servers only to retrieve the data.</li>
                             <li><span className="text-white underline decoration-white/10">Tracking:</span> No cookies or analytics tracking (Google Analytics, etc.) are used on this site.</li>
                         </ul>
                     </div>
@@ -29,7 +29,7 @@ export default function Privacy() {
                 </section>
 
                 <footer className="pt-12">
-                    <a href="/" className="text-[10px] uppercase tracking-[0.5em] text-white/30 hover:text-white transition-colors">← Back to Grid.01</a>
+                    <a href="/" className="text-[10px] uppercase tracking-[0.5em] text-white/30 hover:text-white transition-colors">← Back to Pitwall</a>
                 </footer>
             </div>
         </main>

@@ -17,12 +17,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GRID.01 — F1 Immersive Dashboard",
+  title: "PITWALL — F1 Immersive Dashboard",
   description:
     "Real-time Formula 1 analytics. Race results, live telemetry, driver standings, and AI-powered team intelligence for the 2026 season.",
-  keywords: ["Formula 1", "F1", "2026", "race results", "telemetry", "driver standings", "GRID.01"],
+  keywords: ["Formula 1", "F1", "2026", "race results", "telemetry", "driver standings", "PITWALL"],
   openGraph: {
-    title: "GRID.01 — F1 Immersive Dashboard",
+    title: "PITWALL — F1 Immersive Dashboard",
     description: "Live race results, driver standings, telemetry and paddock intelligence.",
     type: "website",
   },

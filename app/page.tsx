@@ -401,7 +401,7 @@ export default function Home() {
         <footer className="mt-auto pt-16 pb-10 flex flex-col items-center gap-4 text-[8px] font-black uppercase tracking-[0.6em] text-center px-4"
           style={{ color: "var(--text-4)" }}>
           <div className="flex flex-col gap-1">
-            <p>© 2026 GRID.01 • AKHILESH KOTEGAR</p>
+            <p>© 2026 PITWALL • AKHILESH KOTEGAR</p>
             <p style={{ color: "var(--text-3)" }}>WITH LOTS OF LOVE TO MY CO-DRIVER — DUBU</p>
           </div>
           <p className="max-w-2xl leading-relaxed normal-case tracking-widest text-[7px]">
