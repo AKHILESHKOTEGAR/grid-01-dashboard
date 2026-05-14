@@ -26,7 +26,7 @@ export default function ComparePage() {
   };
 
   return (
-    <main className="min-h-screen pt-24 pb-20 px-6" style={{ background: "var(--bg)", color: "var(--text)" }}>
+    <main className="min-h-screen pt-24 pb-20 px-4 sm:px-6" style={{ background: "var(--bg)", color: "var(--text)" }}>
       <div className="max-w-5xl mx-auto">
 
         {/* HEADER */}
@@ -36,7 +36,7 @@ export default function ComparePage() {
             <span className="text-[10px] font-black uppercase tracking-[0.5em] text-red-600">Driver Analysis Engine</span>
           </div>
           <div className="flex items-end justify-between flex-wrap gap-4">
-            <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none" style={{ color: "var(--text)" }}>
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none" style={{ color: "var(--text)" }}>
               Labs Engine
             </h1>
             <div className="p-1.5 rounded-full border" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
@@ -74,21 +74,21 @@ export default function ComparePage() {
             style={{ background: "var(--card)", borderColor: "var(--border)" }}
           >
             {/* Table header */}
-            <div className="grid grid-cols-3 px-8 py-5 border-b" style={{ borderColor: "var(--border)", background: "var(--card-hover)" }}>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-8 rounded-full" style={{ background: getConstructorColor(driverA.Constructors?.[0]?.name ?? "") }} />
-                <span className="font-black text-sm uppercase tracking-widest" style={{ color: "var(--text)" }}>
+            <div className="grid grid-cols-3 px-4 sm:px-8 py-4 sm:py-5 border-b" style={{ borderColor: "var(--border)", background: "var(--card-hover)" }}>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-2 h-6 sm:h-8 rounded-full shrink-0" style={{ background: getConstructorColor(driverA.Constructors?.[0]?.name ?? "") }} />
+                <span className="font-black text-xs sm:text-sm uppercase tracking-widest" style={{ color: "var(--text)" }}>
                   {driverA.Driver.code}
                 </span>
               </div>
-              <span className="text-center self-center text-[10px] font-black uppercase tracking-[0.5em] text-red-500 italic">
+              <span className="text-center self-center text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.5em] text-red-500 italic">
                 Head-to-Head
               </span>
-              <div className="flex items-center justify-end gap-3">
-                <span className="font-black text-sm uppercase tracking-widest" style={{ color: "var(--text)" }}>
+              <div className="flex items-center justify-end gap-2 sm:gap-3">
+                <span className="font-black text-xs sm:text-sm uppercase tracking-widest" style={{ color: "var(--text)" }}>
                   {driverB.Driver.code}
                 </span>
-                <div className="w-2 h-8 rounded-full" style={{ background: getConstructorColor(driverB.Constructors?.[0]?.name ?? "") }} />
+                <div className="w-2 h-6 sm:h-8 rounded-full shrink-0" style={{ background: getConstructorColor(driverB.Constructors?.[0]?.name ?? "") }} />
               </div>
             </div>
 
@@ -171,7 +171,7 @@ function SelectionCard({ side, label, driver, list, onSelect, isDark }: any) {
   const accentColor = driver ? getConstructorColor(driver.Constructors?.[0]?.name ?? "") : "#E10600";
   return (
     <div
-      className="h-[320px] rounded-[2.5rem] border relative overflow-hidden group transition-all"
+      className="h-[220px] sm:h-[320px] rounded-[2rem] sm:rounded-[2.5rem] border relative overflow-hidden group transition-all"
       style={{
         background: "var(--card)",
         borderColor: driver ? `${accentColor}55` : "var(--border)",
@@ -182,7 +182,7 @@ function SelectionCard({ side, label, driver, list, onSelect, isDark }: any) {
       {driver && (
         <img
           src={getDriverPhoto(driver.Driver.driverId, driver.Driver.code)}
-          className="absolute bottom-0 right-0 h-[115%] w-full object-contain object-right-bottom opacity-55 group-hover:opacity-90 transition-all duration-700 ease-out scale-100 group-hover:scale-105"
+          className="absolute bottom-0 right-0 h-full sm:h-[115%] w-full object-contain object-right-bottom opacity-55 group-hover:opacity-90 transition-all duration-700 ease-out scale-100 group-hover:scale-105"
           alt=""
           onError={(e) => {
             const t = e.currentTarget;
@@ -194,7 +194,7 @@ function SelectionCard({ side, label, driver, list, onSelect, isDark }: any) {
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-[var(--bg)] via-[var(--bg)]/60 to-transparent pointer-events-none" />
 
-      <div className="absolute inset-0 p-8 flex flex-col justify-between z-10">
+      <div className="absolute inset-0 p-5 sm:p-8 flex flex-col justify-between z-10">
         <span className="text-[10px] font-black text-red-600 uppercase tracking-[0.4em]">{side} SIGNAL</span>
         <div>
           {/* Invisible native select overlay */}
@@ -213,7 +213,7 @@ function SelectionCard({ side, label, driver, list, onSelect, isDark }: any) {
               ))}
             </select>
             <h2
-              className="text-5xl font-black italic uppercase tracking-tighter leading-none transition-colors"
+              className="text-3xl sm:text-5xl font-black italic uppercase tracking-tighter leading-none transition-colors"
               style={{ color: driver ? "var(--text)" : "var(--text-4)" }}
             >
               {driver ? driver.Driver.familyName : `Select ${label}`}
@@ -241,7 +241,7 @@ function StatRow({ label, desc, valA, valB, result, colorA, colorB }: any) {
   const barB = Math.min(100, (Math.abs(numB) / maxVal) * 100);
 
   return (
-    <div className="grid grid-cols-3 items-center px-8 py-6 transition-all group"
+    <div className="grid grid-cols-3 items-center px-3 sm:px-8 py-4 sm:py-6 transition-all group"
       style={{ background: "transparent" }}
       onMouseEnter={e => (e.currentTarget.style.background = "var(--card-hover)")}
       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
@@ -249,7 +249,7 @@ function StatRow({ label, desc, valA, valB, result, colorA, colorB }: any) {
       {/* Driver A */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-3xl font-mono font-black tracking-tighter" style={{ color: aWins ? colorA : "var(--text-3)" }}>
+          <span className="text-lg sm:text-3xl font-mono font-black tracking-tighter" style={{ color: aWins ? colorA : "var(--text-3)" }}>
             {valA}
           </span>
           {aWins && (
@@ -267,7 +267,7 @@ function StatRow({ label, desc, valA, valB, result, colorA, colorB }: any) {
 
       {/* Center label */}
       <div className="flex flex-col items-center gap-1 px-4">
-        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-center transition-colors group-hover:text-red-500"
+        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.3em] text-center transition-colors group-hover:text-red-500"
           style={{ color: "var(--text-3)" }}>
           {label}
         </span>
@@ -282,7 +282,7 @@ function StatRow({ label, desc, valA, valB, result, colorA, colorB }: any) {
           {bWins && (
             <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-xs font-black" style={{ color: colorB }}>▲</motion.span>
           )}
-          <span className="text-3xl font-mono font-black tracking-tighter" style={{ color: bWins ? colorB : "var(--text-3)" }}>
+          <span className="text-lg sm:text-3xl font-mono font-black tracking-tighter" style={{ color: bWins ? colorB : "var(--text-3)" }}>
             {valB}
           </span>
         </div>

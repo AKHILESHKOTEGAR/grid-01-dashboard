@@ -9,6 +9,7 @@ import {
   SprintResultsList,
   CircuitDisplay,
   getConstructorColor,
+  getDriverPhoto,
 } from "@/components/Podium";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/components/ThemeProvider";
@@ -176,7 +177,7 @@ export default function Home() {
       </div>
 
       {/* CONTENT */}
-      <div className="relative z-10 pt-24 px-6 max-w-7xl mx-auto min-h-screen overflow-y-auto custom-scrollbar flex flex-col">
+      <div className="relative z-10 pt-24 px-4 sm:px-6 max-w-7xl mx-auto min-h-screen overflow-y-auto custom-scrollbar flex flex-col">
 
         {/* ---- RACE SELECTOR BAR ---- */}
         <motion.div
@@ -196,6 +197,7 @@ export default function Home() {
               onChange={e => setYear(e.target.value)}
               className="bg-transparent font-black italic text-base outline-none cursor-pointer"
               style={{ color: "#E10600" }}
+              suppressHydrationWarning
             >
               {Array.from({ length: 77 }, (_, i) => 2026 - i).map(y => (
                 <option key={y} value={String(y)} style={{ background: isDark ? "#0a0a0a" : "#fff" }}>{y}</option>
@@ -232,12 +234,13 @@ export default function Home() {
                 <button
                   key={tab.key}
                   onClick={() => setViewMode(tab.key as any)}
-                  className="px-8 py-2 rounded-full text-[10px] font-black tracking-widest uppercase transition-all"
+                  className="px-4 sm:px-8 py-2 rounded-full text-[10px] font-black tracking-widest uppercase transition-all"
                   style={{
                     background: viewMode === tab.key ? "#E10600" : "transparent",
                     color: viewMode === tab.key ? "#fff" : "var(--text-3)",
                     boxShadow: viewMode === tab.key ? "0 0 22px rgba(225,6,0,0.45)" : "none",
                   }}
+                  suppressHydrationWarning
                 >
                   {tab.label}
                 </button>
@@ -253,6 +256,7 @@ export default function Home() {
                     onClick={() => setSessionMode(mode as any)}
                     className="text-[10px] font-black uppercase tracking-widest transition-all relative pb-1"
                     style={{ color: sessionMode === mode ? "#E10600" : "var(--text-3)" }}
+                    suppressHydrationWarning
                   >
                     {mode === "race" ? "Grand Prix" : mode}
                     {sessionMode === mode && (
@@ -285,7 +289,7 @@ export default function Home() {
                   <motion.h2
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter mb-8 text-center drop-shadow-2xl"
+                    className="text-xl sm:text-4xl md:text-6xl font-black italic uppercase tracking-tighter mb-4 sm:mb-8 text-center drop-shadow-2xl"
                     style={{ color: "var(--text)" }}
                   >
                     {activeInfo?.raceName ?? "Upcoming Race"}
@@ -293,60 +297,92 @@ export default function Home() {
 
                   {/* Circuit card */}
                   <div
-                    className="w-full max-w-5xl rounded-[3rem] border p-10 shadow-[0_40px_100px_rgba(0,0,0,0.5)] relative overflow-hidden"
+                    className="w-full max-w-5xl rounded-[1.5rem] sm:rounded-[3rem] border p-4 sm:p-8 md:p-10 shadow-[0_40px_100px_rgba(0,0,0,0.5)] relative overflow-hidden"
                     style={{ background: isDark ? "rgba(5,5,5,0.6)" : "rgba(255,255,255,0.65)", borderColor: "var(--border)", backdropFilter: "blur(60px)" }}
                   >
                     {/* Grid overlay */}
                     <div className="absolute inset-0 pointer-events-none opacity-20"
                       style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px)", backgroundSize: "30px 30px" }} />
 
-                    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                      {/* Circuit SVG */}
-                      <div>
-                        {activeInfo?.Circuit?.circuitId ? (
-                          <CircuitDisplay circuitId={activeInfo.Circuit.circuitId} year={year} />
-                        ) : (
-                          <div className="w-80 h-48 rounded-[2.5rem] border flex items-center justify-center"
+                    <div className="relative z-10">
+                      {/* Mobile: compact horizontal strip */}
+                      <div className="flex items-center gap-4 lg:hidden">
+                        {activeInfo?.Circuit?.circuitId && (
+                          <div className="shrink-0 w-[110px] h-[80px] rounded-2xl overflow-hidden border flex items-center justify-center"
                             style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-                            <span className="text-[10px] font-black uppercase tracking-widest italic" style={{ color: "var(--text-4)" }}>
-                              Awaiting Uplink...
-                            </span>
+                            <img
+                              src={`/circuits/${activeInfo.Circuit.circuitId}-1.svg`}
+                              className="w-full h-full object-contain p-2 opacity-80"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).src = `/circuits/${activeInfo.Circuit.circuitId}.svg`; }}
+                              alt=""
+                            />
                           </div>
                         )}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex flex-col gap-6 lg:items-end text-center lg:text-right">
-                        <div className="space-y-2">
-                          <span className="text-red-600 text-[10px] font-black uppercase tracking-[0.6em]">
-                            {isUpcoming ? "Coming Soon •" : "Race Venue •"}
+                        <div className="flex-1 min-w-0">
+                          <span className="text-red-600 text-[9px] font-black uppercase tracking-[0.4em]">
+                            {isUpcoming ? "Coming Soon" : "Race Venue"}
                           </span>
-                          <h3 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-tight" style={{ color: "var(--text)" }}>
-                            {activeInfo?.Circuit?.circuitName ?? "Circuit Architecture"}
+                          <h3 className="text-base font-black italic uppercase tracking-tighter leading-tight mt-0.5" style={{ color: "var(--text)" }}>
+                            {activeInfo?.Circuit?.circuitName ?? "Circuit"}
                           </h3>
-                          <p className="font-bold uppercase text-[11px] tracking-[0.4em]" style={{ color: "var(--text-2)" }}>
+                          <p className="text-[10px] font-bold uppercase tracking-wider mt-1" style={{ color: "var(--text-3)" }} suppressHydrationWarning>
                             {activeInfo?.date
-                              ? new Date(activeInfo.date).toLocaleDateString(undefined, { day: "2-digit", month: "long", year: "numeric" })
+                              ? new Date(activeInfo.date).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })
                               : "TBD"}
-                            {" "}<span style={{ color: "var(--text-4)" }}>•</span>{" "}
-                            {activeInfo?.Circuit?.Location?.locality ?? ""}
+                            {" · "}{activeInfo?.Circuit?.Location?.locality ?? ""}
                           </p>
-                        </div>
-
-                        <div className="flex items-center justify-between w-full pt-6 border-t" style={{ borderColor: "var(--border)" }}>
-                          <div className="flex flex-col items-start">
-                            <span className="text-[8px] font-black text-red-500 uppercase tracking-widest mb-1">Local Start Time</span>
-                            <span className="text-3xl font-mono font-black italic" style={{ color: "var(--text)" }}>
-                              {activeInfo?.date && activeInfo?.time
-                                ? new Date(`${activeInfo.date}T${activeInfo.time}`).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false })
-                                : "14:00"}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full animate-pulse ${isUpcoming ? "bg-orange-500" : "bg-red-600"}`} />
-                            <span className={`text-[10px] font-black uppercase tracking-[0.3em] italic ${isUpcoming ? "text-orange-500" : "text-white/40"}`}>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isUpcoming ? "bg-orange-500" : "bg-red-600"}`} />
+                            <span className={`text-[9px] font-black uppercase tracking-widest ${isUpcoming ? "text-orange-500" : "text-white/40"}`}>
                               {isUpcoming ? "Upcoming" : "Completed"}
                             </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Desktop: original 2-col layout */}
+                      <div className="hidden lg:grid grid-cols-2 gap-16 items-center">
+                        <div>
+                          {activeInfo?.Circuit?.circuitId ? (
+                            <CircuitDisplay circuitId={activeInfo.Circuit.circuitId} year={year} />
+                          ) : (
+                            <div className="w-80 h-48 rounded-[2.5rem] border flex items-center justify-center"
+                              style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+                              <span className="text-[10px] font-black uppercase tracking-widest italic" style={{ color: "var(--text-4)" }}>
+                                Awaiting Uplink...
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-6 items-end text-right">
+                          <div className="space-y-2">
+                            <span className="text-red-600 text-[10px] font-black uppercase tracking-[0.6em]">
+                              {isUpcoming ? "Coming Soon •" : "Race Venue •"}
+                            </span>
+                            <h3 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-tight" style={{ color: "var(--text)" }}>
+                              {activeInfo?.Circuit?.circuitName ?? "Circuit Architecture"}
+                            </h3>
+                            <p className="font-bold uppercase text-[11px] tracking-[0.4em]" style={{ color: "var(--text-2)" }} suppressHydrationWarning>
+                              {activeInfo?.date ? new Date(activeInfo.date).toLocaleDateString(undefined, { day: "2-digit", month: "long", year: "numeric" }) : "TBD"}
+                              {" "}<span style={{ color: "var(--text-4)" }}>•</span>{" "}
+                              {activeInfo?.Circuit?.Location?.locality ?? ""}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between w-full pt-6 border-t" style={{ borderColor: "var(--border)" }}>
+                            <div className="flex flex-col items-start">
+                              <span className="text-[8px] font-black text-red-500 uppercase tracking-widest mb-1">Local Start Time</span>
+                              <span className="text-3xl font-mono font-black italic" style={{ color: "var(--text)" }} suppressHydrationWarning>
+                                {activeInfo?.date && activeInfo?.time
+                                  ? new Date(`${activeInfo.date}T${activeInfo.time}`).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false })
+                                  : "14:00"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full animate-pulse ${isUpcoming ? "bg-orange-500" : "bg-red-600"}`} />
+                              <span className={`text-[10px] font-black uppercase tracking-[0.3em] italic ${isUpcoming ? "text-orange-500" : "text-white/40"}`}>
+                                {isUpcoming ? "Upcoming" : "Completed"}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -355,12 +391,56 @@ export default function Home() {
 
                   {/* Podium + results */}
                   {!isUpcoming && results && results.length > 0 && (
-                    <div className="mt-20 space-y-10 w-full pb-20">
-                      <div className="flex justify-center items-end gap-8 h-[480px]">
-                        {results[1] && <div className="pb-4"><PodiumCard driver={results[1]} position={2} /></div>}
-                        {results[0] && <div className="scale-110 pb-14 z-10"><PodiumCard driver={results[0]} position={1} /></div>}
-                        {results[2] && <div className="pb-4"><PodiumCard driver={results[2]} position={3} /></div>}
+                    <div className="mt-6 sm:mt-20 space-y-6 sm:space-y-10 w-full pb-20">
+
+                      {/* Mobile podium — clean stacked cards */}
+                      <div className="lg:hidden w-full space-y-2.5">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="h-px flex-1" style={{ background: "var(--border)" }} />
+                          <span className="text-[9px] font-black uppercase tracking-[0.4em]" style={{ color: "var(--text-4)" }}>Podium</span>
+                          <div className="h-px flex-1" style={{ background: "var(--border)" }} />
+                        </div>
+                        {[results[0], results[1], results[2]].filter(Boolean).map((driver, idx) => {
+                          const pos = idx + 1;
+                          const color = getConstructorColor(driver.Constructor?.name ?? "");
+                          const medals = ["🥇", "🥈", "🥉"];
+                          return (
+                            <div key={driver.Driver.driverId}
+                              className="flex items-center gap-3 p-3.5 rounded-2xl border"
+                              style={{ background: "var(--card)", borderColor: "var(--border)", borderLeft: `3px solid ${color}` }}>
+                              <span className="text-lg w-7 text-center shrink-0">{medals[idx]}</span>
+                              <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border" style={{ borderColor: `${color}50` }}>
+                                <img
+                                  src={getDriverPhoto(driver.Driver.driverId, driver.Driver.code)}
+                                  className="w-full h-full object-cover"
+                                  alt=""
+                                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[9px] font-black uppercase tracking-widest truncate" style={{ color }}>{driver.Constructor?.name}</div>
+                                <div className="text-sm font-black italic uppercase tracking-tight" style={{ color: "var(--text)" }}>
+                                  {driver.Driver.familyName}
+                                </div>
+                              </div>
+                              <div className="text-right shrink-0">
+                                <div className="text-sm font-mono font-black" style={{ color: "var(--text)" }}>{driver.points}</div>
+                                <div className="text-[8px] font-bold uppercase" style={{ color: "var(--text-3)" }}>PTS</div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
+
+                      {/* Desktop podium — 3D cards */}
+                      <div className="hidden lg:block w-full overflow-x-auto pb-4">
+                        <div className="flex justify-center items-end gap-8 h-[480px] min-w-max mx-auto px-4">
+                          {results[1] && <div className="pb-4"><PodiumCard driver={results[1]} position={2} /></div>}
+                          {results[0] && <div className="scale-110 pb-14 z-10"><PodiumCard driver={results[0]} position={1} /></div>}
+                          {results[2] && <div className="pb-4"><PodiumCard driver={results[2]} position={3} /></div>}
+                        </div>
+                      </div>
+
                       <div>
                         {sessionMode === "qualifying" ? (
                           <QualifyingResultsList results={results} />

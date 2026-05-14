@@ -186,7 +186,7 @@ export const CircuitDisplay = ({ circuitId, year }: { circuitId: string; year: s
   const isLive = year === "2026";
 
   return (
-    <div className="relative w-80 h-48 rounded-[2.5rem] p-8 flex items-center justify-center overflow-hidden transition-all duration-700 shadow-[0_0_50px_rgba(0,0,0,0.5)] hover:border-red-500/50 border border-white/20"
+    <div className="relative w-full max-w-[320px] h-48 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 flex items-center justify-center overflow-hidden transition-all duration-700 shadow-[0_0_50px_rgba(0,0,0,0.5)] hover:border-red-500/50 border border-white/20"
       style={{ background: "var(--card)", backdropFilter: "blur(40px)" }}>
       {/* Grid overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
@@ -263,7 +263,7 @@ export const PodiumCard = ({ driver, position }: { driver: any; position: number
 /*  RACE RESULTS LIST                                                  */
 /* ------------------------------------------------------------------ */
 export const RaceResultsList = ({ results, onDriverClick }: { results: any[]; onDriverClick?: (code: string) => void }) => (
-  <div className="space-y-3 w-full max-w-5xl mx-auto pb-20 px-4">
+  <div className="space-y-2 w-full max-w-5xl mx-auto pb-20 px-3 sm:px-4">
     {results.map((res: any) => {
       const d = res.Driver ?? res;
       const timing = res.Time?.time ?? res.status;
@@ -274,13 +274,13 @@ export const RaceResultsList = ({ results, onDriverClick }: { results: any[]; on
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => onDriverClick?.(d.code)}
-          className="flex items-center gap-5 p-4 rounded-[2rem] backdrop-blur-xl border transition-all cursor-pointer overflow-hidden"
-          style={{ background: "var(--card)", borderColor: "var(--border)" }}
+          className="flex items-center gap-2 sm:gap-4 p-2.5 sm:p-4 rounded-2xl sm:rounded-[2rem] backdrop-blur-xl border transition-all cursor-pointer overflow-hidden"
+          style={{ background: "var(--card)", borderColor: "var(--border)", borderLeft: `3px solid ${accentColor}` }}
           whileHover={{ scale: 1.01, borderColor: accentColor + "60" }}
         >
-          <span className="font-mono text-red-600 font-black w-8 text-center text-xl italic shrink-0">{res.position}</span>
+          <span className="font-mono text-red-600 font-black w-6 sm:w-8 text-center text-sm sm:text-xl italic shrink-0">{res.position}</span>
 
-          <div className="w-12 h-12 rounded-full overflow-hidden bg-zinc-900 border border-white/10 shrink-0">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full overflow-hidden bg-zinc-900 border border-white/10 shrink-0">
             <img
               src={getDriverPhoto(d.driverId, d.code)}
               className="w-full h-full object-cover"
@@ -293,25 +293,24 @@ export const RaceResultsList = ({ results, onDriverClick }: { results: any[]; on
             />
           </div>
 
-          {/* Left border accent */}
-          <div className="w-1 h-10 rounded-full shrink-0" style={{ background: accentColor }} />
-
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-black uppercase" style={{ color: "var(--text)" }}>
-              {d.givenName} <span className="text-2xl font-black italic">{d.familyName}</span>
+            <div className="font-black uppercase leading-tight" style={{ color: "var(--text)" }}>
+              <span className="hidden sm:inline text-xs">{d.givenName} </span>
+              <span className="text-sm sm:text-xl font-black italic">{d.familyName}</span>
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-3)" }}>
+            <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] truncate" style={{ color: "var(--text-3)" }}>
               {res.Constructor?.name}
             </div>
           </div>
 
-          <span className="text-xs font-mono font-bold pr-4 shrink-0" style={{ color: "var(--text-2)" }}>
+          <span className="hidden sm:block text-xs font-mono font-bold shrink-0" style={{ color: "var(--text-2)" }}>
             {timing}
           </span>
 
-          <div className="flex flex-col items-center justify-center min-w-[72px] h-14 rounded-2xl shrink-0"
+          <div className="flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px] h-10 sm:h-12 rounded-xl sm:rounded-2xl shrink-0"
             style={{ background: "rgba(225,6,0,0.12)", border: "1px solid rgba(225,6,0,0.3)" }}>
-            <span className="text-2xl font-mono font-black italic" style={{ color: "#E10600" }}>
+            <span className="text-xs sm:text-[10px] font-black uppercase leading-none mb-0.5" style={{ color: "rgba(225,6,0,0.6)" }}>PTS</span>
+            <span className="text-base sm:text-xl font-mono font-black italic" style={{ color: "#E10600" }}>
               {res.points ?? "0"}
             </span>
           </div>
@@ -428,12 +427,12 @@ export const SeasonStandings = ({
   year: string;
 }) => {
   return (
-    <div className="mt-8 pb-20 px-4 max-w-7xl mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+    <div className="mt-8 pb-20 px-3 sm:px-4 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
 
         {/* ---- DRIVER STANDINGS ---- */}
-        <div className="space-y-2">
-          <h3 className="text-[11px] font-black text-red-600 uppercase tracking-[0.5em] mb-5 px-2">Driver Standings</h3>
+        <div className="space-y-1.5">
+          <h3 className="text-[10px] font-black text-red-600 uppercase tracking-[0.4em] mb-4 px-1">Driver Standings</h3>
           {drivers.length > 0 ? drivers.map((s, idx) => {
             const teamName = s.Constructors?.[0]?.name ?? "";
             const accent = getConstructorColor(teamName);
@@ -444,16 +443,16 @@ export const SeasonStandings = ({
                 initial={{ opacity: 0, x: -15 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.03 }}
-                className="flex items-center gap-3 group"
+                className="flex items-center gap-2 sm:gap-3 group"
               >
-                <span className="font-mono text-[11px] w-5 text-right shrink-0" style={{ color: "var(--text-3)" }}>{s.position}</span>
+                <span className="font-mono text-[10px] w-5 text-right shrink-0" style={{ color: "var(--text-3)" }}>{s.position}</span>
 
-                <div className="flex-1 flex items-center justify-between rounded-2xl border overflow-hidden transition-all"
+                <div className="flex-1 flex items-center rounded-xl sm:rounded-2xl border overflow-hidden transition-all"
                   style={{ background: "var(--card)", borderColor: "var(--border)", borderLeft: `3px solid ${accent}` }}>
 
-                  {/* Driver info — left section */}
-                  <div className="flex items-center gap-3 p-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border shrink-0" style={{ borderColor: `${accent}55` }}>
+                  {/* Driver info */}
+                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 flex-1 min-w-0">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border shrink-0" style={{ borderColor: `${accent}55` }}>
                       <img
                         src={getDriverPhoto(d.driverId, d.code)}
                         className="w-full h-full object-cover"
@@ -466,24 +465,24 @@ export const SeasonStandings = ({
                       />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="font-black uppercase italic text-sm leading-tight truncate" style={{ color: "var(--text)" }}>
+                      <span className="font-black uppercase italic text-xs sm:text-sm leading-tight truncate" style={{ color: "var(--text)" }}>
                         {d.familyName}
                       </span>
-                      <span className="text-[9px] font-bold uppercase tracking-widest truncate" style={{ color: "var(--text-3)" }}>
+                      <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest truncate" style={{ color: "var(--text-3)" }}>
                         {teamName}
                       </span>
                     </div>
                   </div>
 
-                  {/* Team logo badge — visible on right */}
-                  <div className="hidden sm:flex items-center gap-3 pr-3 shrink-0">
-                    <TeamLogoBadge teamName={teamName} teamColor={accent} size={40} />
+                  {/* Team logo — tablet+ only */}
+                  <div className="hidden sm:flex items-center pr-3 shrink-0">
+                    <TeamLogoBadge teamName={teamName} teamColor={accent} size={36} />
                   </div>
 
-                  {/* Points — always visible, always on right */}
-                  <div className="flex items-center justify-center w-16 h-full shrink-0 border-l py-3 px-3"
+                  {/* Points */}
+                  <div className="flex items-center justify-center w-12 sm:w-16 h-full shrink-0 border-l py-2 px-2 sm:px-3"
                     style={{ borderColor: "var(--border)" }}>
-                    <span className="font-mono font-black text-lg" style={{ color: "var(--text)" }}>
+                    <span className="font-mono font-black text-sm sm:text-lg" style={{ color: "var(--text)" }}>
                       {s.points}
                     </span>
                   </div>
@@ -491,17 +490,17 @@ export const SeasonStandings = ({
               </motion.div>
             );
           }) : (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-16 rounded-2xl skeleton" />
+                <div key={i} className="h-12 rounded-xl skeleton" />
               ))}
             </div>
           )}
         </div>
 
         {/* ---- CONSTRUCTOR STANDINGS ---- */}
-        <div className="space-y-2">
-          <h3 className="text-[11px] font-black text-red-600 uppercase tracking-[0.5em] mb-5 px-2">Constructor Standings</h3>
+        <div className="space-y-1.5">
+          <h3 className="text-[10px] font-black text-red-600 uppercase tracking-[0.4em] mb-4 px-1">Constructor Standings</h3>
           {teams.length > 0 ? teams.map((s, idx) => {
             const accent = getConstructorColor(s.Constructor.name);
             return (
@@ -510,25 +509,30 @@ export const SeasonStandings = ({
                 initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1.0, x: 0 }}
                 transition={{ delay: idx * 0.03 }}
-                className="flex items-center gap-3 group"
+                className="flex items-center gap-2 sm:gap-3 group"
               >
-                <span className="font-mono text-[11px] w-5 text-right shrink-0" style={{ color: "var(--text-3)" }}>{s.position}</span>
+                <span className="font-mono text-[10px] w-5 text-right shrink-0" style={{ color: "var(--text-3)" }}>{s.position}</span>
 
-                <div className="flex-1 flex items-center justify-between rounded-2xl border overflow-hidden transition-all"
+                <div className="flex-1 flex items-center rounded-xl sm:rounded-2xl border overflow-hidden transition-all"
                   style={{ background: "var(--card)", borderColor: "var(--border)", borderLeft: `3px solid ${accent}` }}>
 
-                  {/* Team name */}
-                  <div className="flex items-center gap-3 p-3 flex-1 min-w-0">
-                    <TeamLogoBadge teamName={s.Constructor.name} teamColor={accent} size={56} />
-                    <span className="font-black uppercase italic text-sm truncate" style={{ color: "var(--text)" }}>
+                  {/* Team info */}
+                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 flex-1 min-w-0">
+                    <div className="sm:hidden shrink-0">
+                      <TeamLogoBadge teamName={s.Constructor.name} teamColor={accent} size={32} />
+                    </div>
+                    <div className="hidden sm:block shrink-0">
+                      <TeamLogoBadge teamName={s.Constructor.name} teamColor={accent} size={44} />
+                    </div>
+                    <span className="font-black uppercase italic text-xs sm:text-sm truncate" style={{ color: "var(--text)" }}>
                       {s.Constructor.name}
                     </span>
                   </div>
 
-                  {/* Points — always visible */}
-                  <div className="flex items-center justify-center w-16 h-full shrink-0 border-l py-3 px-3"
+                  {/* Points */}
+                  <div className="flex items-center justify-center w-12 sm:w-16 h-full shrink-0 border-l py-2 px-2 sm:px-3"
                     style={{ borderColor: "var(--border)" }}>
-                    <span className="font-mono font-black text-lg" style={{ color: "var(--text)" }}>
+                    <span className="font-mono font-black text-sm sm:text-lg" style={{ color: "var(--text)" }}>
                       {s.points}
                     </span>
                   </div>
@@ -536,9 +540,9 @@ export const SeasonStandings = ({
               </motion.div>
             );
           }) : (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-16 rounded-2xl skeleton" />
+                <div key={i} className="h-12 rounded-xl skeleton" />
               ))}
             </div>
           )}

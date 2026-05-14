@@ -1,0 +1,7 @@
+node_modules
+.next
+backend
+f1-race-replay
+venv
+.fastf1-cache
+__pycache__

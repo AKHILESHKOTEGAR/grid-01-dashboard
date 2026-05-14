@@ -359,7 +359,7 @@ export default function TelemetryPage() {
               Driver Telemetry
             </span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-none" style={{ color: "var(--text)" }}>
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-none" style={{ color: "var(--text)" }}>
             Telemetry
           </h1>
         </motion.div>
@@ -556,18 +556,18 @@ export default function TelemetryPage() {
                     </div>
 
                     {/* Stat tiles */}
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4">
                       {[
-                        { label: "Top Speed",    value: maxSpeed    ? `${maxSpeed}`    : "--", unit: "km/h", icon: <Gauge    size={16} />, color: "#E10600" },
-                        { label: "Avg Throttle", value: avgThrottle ? `${avgThrottle}` : "--", unit: "%",    icon: <Zap      size={16} />, color: "#22c55e" },
-                        { label: "DRS Zones",    value: drsActs     ? `${drsActs}`     : "--", unit: "acts", icon: <Activity size={16} />, color: "#3b82f6" },
+                        { label: "Top Speed",    value: maxSpeed    ? `${maxSpeed}`    : "--", unit: "km/h", icon: <Gauge    size={14} />, color: "#E10600" },
+                        { label: "Avg Throttle", value: avgThrottle ? `${avgThrottle}` : "--", unit: "%",    icon: <Zap      size={14} />, color: "#22c55e" },
+                        { label: "DRS Zones",    value: drsActs     ? `${drsActs}`     : "--", unit: "acts", icon: <Activity size={14} />, color: "#3b82f6" },
                       ].map(s => (
-                        <div key={s.label} className="rounded-2xl border p-4" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-                          <div className="flex items-center gap-2 mb-2" style={{ color: s.color }}>
+                        <div key={s.label} className="rounded-2xl border p-3 sm:p-4" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+                          <div className="flex items-center gap-1.5 mb-2" style={{ color: s.color }}>
                             {s.icon}
-                            <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: "var(--text-3)" }}>{s.label}</span>
+                            <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-widest" style={{ color: "var(--text-3)" }}>{s.label}</span>
                           </div>
-                          <div className="text-3xl font-mono font-black italic" style={{ color: "var(--text)" }}>{s.value}</div>
+                          <div className="text-xl sm:text-3xl font-mono font-black italic" style={{ color: "var(--text)" }}>{s.value}</div>
                           <div className="text-[8px] font-bold uppercase mt-0.5" style={{ color: "var(--text-3)" }}>{s.unit}</div>
                         </div>
                       ))}
@@ -639,9 +639,6 @@ export default function TelemetryPage() {
         )}
       </div>
 
-      <style jsx global>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   );
 }
