@@ -4,7 +4,7 @@ Replay endpoint mirrors f1-race-replay's data pipeline exactly
 (per-lap telemetry via multiprocessing) so it always works with
 the same FastF1 cache.
 """
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from concurrent.futures import ThreadPoolExecutor
@@ -94,7 +94,8 @@ def _process_driver(args):
                 tyre_all.append(np.full(n, tyre_int, dtype=np.float32))
                 sp_all.append(sp); g_all.append(g); drs_all.append(drs)
                 th_all.append(th); br_all.append(br)
-            except Exception:
+            except Exception as e:
+                print(f"  lap error [{code}]: {e}")
                 continue
 
         if not t_all:
@@ -132,7 +133,7 @@ def _build_replay(year: int, round_num: int) -> dict:
     Mirrors get_race_telemetry from f1-race-replay.
     """
     session = fastf1.get_session(year, round_num, "R")
-    session.load(telemetry=False, laps=True, weather=False)
+    session.load(telemetry=True, laps=True, weather=False)
 
     event_name = str(session.event["EventName"])
     drivers    = session.drivers
@@ -308,7 +309,7 @@ async def get_telemetry(year: int, round_num: int, driver: str):
         try:
             session = fastf1.get_session(year, round_num, "R")
             session.load(telemetry=True, laps=True, weather=False)
-            fastest = session.laps.pick_driver(driver).pick_fastest()
+            fastest = session.laps.pick_drivers(driver).pick_fastest()
             tel = fastest.get_telemetry()
             result = {
                 "Speed":    tel["Speed"].tolist(),
@@ -338,10 +339,12 @@ async def stream_replay(year: int, round_num: int, request: Request):
                 load_task = asyncio.create_task(
                     asyncio.to_thread(lambda: _build_replay(year, round_num))
                 )
+                elapsed = 0
                 while not load_task.done():
-                    await asyncio.sleep(15)
+                    await asyncio.sleep(5)
+                    elapsed += 5
                     if not load_task.done():
-                        yield ": keep-alive\n\n"
+                        yield f"data: {json.dumps({'status':'loading','message':f'Downloading race data... ({elapsed}s)'})}\n\n"
 
                 try:
                     cached = load_task.result()
@@ -426,6 +429,110 @@ async def stream_replay(year: int, round_num: int, request: Request):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@app.websocket("/ws/replay/{year}/{round_num}")
+async def ws_replay(websocket: WebSocket, year: int, round_num: int):
+    await websocket.accept()
+    cache_key = f"{year}_{round_num}"
+    try:
+        cached = _replay_cache.get(cache_key)
+
+        if cached is None:
+            await websocket.send_text(json.dumps({'status': 'loading', 'message': f'Loading {year} Round {round_num}...'}))
+            load_task = asyncio.create_task(
+                asyncio.to_thread(lambda: _build_replay(year, round_num))
+            )
+            elapsed = 0
+            while not load_task.done():
+                await asyncio.sleep(5)
+                elapsed += 5
+                if not load_task.done():
+                    await websocket.send_text(json.dumps({'status': 'loading', 'message': f'Downloading race data... ({elapsed}s)'}))
+            try:
+                cached = load_task.result()
+                _replay_cache[cache_key] = cached
+            except Exception as e:
+                await websocket.send_text(json.dumps({'error': str(e)}))
+                return
+        else:
+            await websocket.send_text(json.dumps({'status': 'loading', 'message': 'Loaded from cache — starting...'}))
+
+        await websocket.send_text(json.dumps({
+            'status': 'ready',
+            'bounds': cached['bounds'],
+            'track_pts': cached['track_pts'],
+            'pit_pts': cached['pit_pts'],
+            'event_name': cached['event_name'],
+        }))
+
+        resampled    = cached["resampled"]
+        tl_shifted   = cached["tl_shifted"]
+        g_t_min      = cached["g_t_min"]
+        PLAYBACK     = cached["PLAYBACK"]
+        total_laps   = cached["total_laps"]
+        event_name   = cached["event_name"]
+        driver_codes = list(resampled.keys())
+        n_frames     = len(tl_shifted)
+
+        for i in range(n_frames):
+            t_val    = float(tl_shifted[i])
+            snapshot = []
+            for code in driver_codes:
+                d = resampled[code]
+                xi_raw, yi_raw = d["x"][i], d["y"][i]
+                if np.isnan(xi_raw) or np.isnan(yi_raw):
+                    continue
+                xi, yi = float(xi_raw), float(yi_raw)
+                if abs(xi) < 1 and abs(yi) < 1:
+                    continue
+                snapshot.append({
+                    "code": code, "x": xi, "y": yi,
+                    "dist":     float(d["dist"][i]),
+                    "rel_dist": float(d["rel_dist"][i]),
+                    "lap":      int(round(d["lap"][i])),
+                    "tyre":     int(round(d["tyre"][i])),
+                    "speed":    float(d["speed"][i]),
+                    "gear":     int(round(d["gear"][i])),
+                    "drs":      int(round(d["drs"][i])),
+                    "throttle": float(d["throttle"][i]),
+                    "brake":    float(d["brake"][i]),
+                })
+
+            if not snapshot:
+                continue
+
+            snapshot.sort(key=lambda r: (r["lap"], r["dist"]), reverse=True)
+            frame_data: dict = {}
+            for pos, car in enumerate(snapshot, 1):
+                frame_data[car["code"]] = {
+                    "x": car["x"], "y": car["y"],
+                    "speed": car["speed"], "gear": car["gear"],
+                    "throttle": car["throttle"], "brake": car["brake"],
+                    "drs": car["drs"], "tyre": car["tyre"],
+                    "position": pos,
+                    "lap": car["lap"], "rel_dist": car["rel_dist"], "dist": car["dist"],
+                }
+
+            leader = snapshot[0]
+            secs   = int(g_t_min + t_val * PLAYBACK)
+            time_str = f"{secs//3600:02d}:{(secs%3600)//60:02d}:{secs%60:02d}"
+
+            await websocket.send_text(json.dumps({
+                'frame': {'drivers': frame_data, 'safety_car': None, 'lap': leader['lap'], 't': t_val},
+                'session_data': {'lap': leader['lap'], 'leader': leader['code'], 'time': time_str, 'total_laps': total_laps},
+                'track_status': '1', 'is_paused': False, 'playback_speed': PLAYBACK,
+                'frame_index': i, 'total_frames': n_frames, 'event_name': event_name,
+            }))
+            await asyncio.sleep(DT_STREAM)
+
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        try:
+            await websocket.send_text(json.dumps({'error': str(e)}))
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
