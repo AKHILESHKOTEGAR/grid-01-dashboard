@@ -48,6 +48,7 @@ export default function Navbar() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
         className="fixed top-4 left-4 z-[200]"
+        suppressHydrationWarning
       >
         <Link href="/" className="flex items-center gap-2 px-3 py-2 rounded-full border shadow-xl"
           style={{
@@ -56,6 +57,7 @@ export default function Navbar() {
             backdropFilter: "blur(32px)",
             WebkitBackdropFilter: "blur(32px)",
           }}
+          suppressHydrationWarning
         >
           <div className="w-1 h-5 rounded-full shrink-0" style={{ background: "#E10600", boxShadow: "0 0 12px #E10600" }} suppressHydrationWarning />
           <span className="text-sm font-black italic tracking-tighter uppercase" style={{ color: "var(--text)" }} suppressHydrationWarning>
@@ -114,7 +116,7 @@ export default function Navbar() {
           }}
           suppressHydrationWarning
         >
-          {open ? <X size={14} /> : <Menu size={14} />}
+          {open ? <X size={14} suppressHydrationWarning /> : <Menu size={14} suppressHydrationWarning />}
         </button>
       </motion.nav>
 
