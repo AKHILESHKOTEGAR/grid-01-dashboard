@@ -430,9 +430,9 @@ export default function HomeContent() {
 
                       {/* Desktop podium — 3D cards */}
                       <div className="hidden lg:block w-full overflow-x-auto pb-4">
-                        <div className="flex justify-center items-end gap-8 h-[480px] min-w-max mx-auto px-4">
+                        <div className="flex justify-center items-end gap-8 h-[560px] min-w-max mx-auto px-4">
                           {results[1] && <div className="pb-4"><PodiumCard driver={results[1]} position={2} /></div>}
-                          {results[0] && <div className="scale-110 pb-14 z-10"><PodiumCard driver={results[0]} position={1} /></div>}
+                          {results[0] && <div className="pb-14 z-10"><PodiumCard driver={results[0]} position={1} /></div>}
                           {results[2] && <div className="pb-4"><PodiumCard driver={results[2]} position={3} /></div>}
                         </div>
                       </div>
